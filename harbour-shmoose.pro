@@ -103,6 +103,10 @@ SOURCES += \
     source/xep/httpFileUpload/ImageProcessing.cpp \
     source/xep/httpFileUpload/FileWithCypher.cpp \
     source/xep/mam/MamManager.cpp \
+    source/xep/mam/MamStanzaPayload.cpp \
+    source/xep/mam/MamStanzaPayloadParser.cpp \
+    source/xep/mam/MamStanzaPayloadParserFactory.cpp \
+    source/xep/mam/MamStanzaPayloadSerializer.cpp \
     source/xep/xmppPing/XmppPingController.cpp \
     source/xep/chatMarkers/ChatMarkers.cpp \
     source/xep/stanzaId/StanzaId.cpp \
@@ -156,6 +160,10 @@ HEADERS += source/base/Shmoose.h \
     source/xep/httpFileUpload/ImageProcessing.h \
     source/xep/httpFileUpload/FileWithCypher.h \
     source/xep/mam/MamManager.h \
+    source/xep/mam/MamStanzaPayload.h \
+    source/xep/mam/MamStanzaPayloadParser.h \
+    source/xep/mam/MamStanzaPayloadParserFactory.h \
+    source/xep/mam/MamStanzaPayloadSerializer.h \
     source/xep/omemo/BundleDeviceListRequest.h \
     source/xep/xmppPing/PingRequest.h \
     source/xep/xmppPing/XmppPingController.h \

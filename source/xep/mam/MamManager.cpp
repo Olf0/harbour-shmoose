@@ -24,10 +24,13 @@ void MamManager::setupWithClient(Swift::Client* client)
 {
     client_ = client;
 
+    client->addPayloadParserFactory(&mamStanzaPayloadParserFactory_);
+    client->addPayloadSerializer(&mamStanzaPayloadSerializer_);
+
     client_->onConnected.connect(boost::bind(&MamManager::handleConnected, this));
 
     // watch the received messages and handle the Mam one's
-    client_->onDataRead.connect(boost::bind(&MamManager::handleDataReceived, this, _1));
+    //client_->onDataRead.connect(boost::bind(&MamManager::handleDataReceived, this, _1));
 }
 
 void MamManager::handleConnected()

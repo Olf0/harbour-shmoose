@@ -1,5 +1,7 @@
-#ifndef MAMMANAGER_H
-#define MAMMANAGER_H
+#pragma once
+
+#include "MamStanzaPayloadParserFactory.h"
+#include "MamStanzaPayloadSerializer.h"
 
 #include <QObject>
 #include <QStringList>
@@ -35,6 +37,9 @@ private:
     bool serverHasFeature_;
     QStringList queridJids_;
 
+    MamStanzaPayloadParserFactory mamStanzaPayloadParserFactory_;
+    MamStanzaPayloadSerializer mamStanzaPayloadSerializer_;
+
     Persistence* persistence_;
     DownloadManager* downloadManager_;
     Swift::Client* client_;
@@ -49,4 +54,3 @@ private slots:
 
 };
 
-#endif // MAMMANAGER_H
