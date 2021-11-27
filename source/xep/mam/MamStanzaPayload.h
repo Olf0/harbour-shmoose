@@ -15,8 +15,8 @@ public:
     const std::string& getType() const;
 #endif
 
-    void setFwdPayload(std::shared_ptr<Swift::Payload> payload) { fwdPayload_ = payload; }
-    const std::shared_ptr<Swift::Payload>& getFwdPayload() const { return fwdPayload_; }
+    void setFwdPayload(std::shared_ptr<Swift::Forwarded> payload) { fwdPayload_ = payload; }
+    const std::shared_ptr<Swift::Forwarded>& getFwdPayload() const { return fwdPayload_; }
 
     void setStanza(std::shared_ptr<Swift::Stanza> stanza) { stanza_ = stanza; }
     const std::shared_ptr<Swift::Stanza>& getStanza() const { return stanza_; }
@@ -38,7 +38,7 @@ private:
 #endif
     std::shared_ptr<Swift::Payload> payload_;
 
-    std::shared_ptr<Swift::Payload> fwdPayload_;
+    std::shared_ptr<Swift::Forwarded> fwdPayload_;
 
     int direction{0};
 };

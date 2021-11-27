@@ -68,7 +68,7 @@ void MamStanzaPayloadParser::handleEndElement(const std::string& element, const 
         /* done parsing nested stanza */
         // FIXME
         //getPayloadInternal()->setStanza(fwdParser_->getStanza());
-        getPayloadInternal()->setFwdPayload(fwdParser_->getPayload());
+        getPayloadInternal()->setFwdPayload(std::dynamic_pointer_cast<Swift::Forwarded>(fwdParser_->getPayload()));
         fwdParser_.reset();
     }
 }

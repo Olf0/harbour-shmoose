@@ -14,8 +14,25 @@ std::string MamStanzaPayloadSerializer::serializePayload(std::shared_ptr<MamStan
 
     if (payload->getFwdPayload())
     {
+        //auto fwdPayload = payload->getFwdPayload();
         // FIXME add the fwdpaylod to the element?
          // all needed elements are there :-)!
+        auto pl = payload->getFwdPayload();
+
+        if (pl->getStanza()) { /* find out what type of stanza we are dealing with and branch into the correct serializer*/
+            std::shared_ptr<Swift::IQ> iq;
+            std::shared_ptr<Swift::Message> message;
+            std::shared_ptr<Swift::Presence> presence;
+            const std::string ns = "jabber:client";
+            if ((iq = std::dynamic_pointer_cast<Swift::IQ>(pl->getStanza()))) {
+                element.addNode(std::make_shared<Swift::XMLRawTextNode>(safeByteArrayToString(Swift::IQSerializer(serializers_).serialize(iq, ns))));
+            } else if ((message = std::dynamic_pointer_cast<Swift::Message>(pl->getStanza()))) {
+                element.addNode(std::make_shared<Swift::XMLRawTextNode>(safeByteArrayToString(Swift::MessageSerializer(serializers_).serialize(message, ns))));
+            } else if ((presence = std::dynamic_pointer_cast<Swift::Presence>(pl->getStanza()))) {
+                element.addNode(std::make_shared<Swift::XMLRawTextNode>(safeByteArrayToString(Swift::PresenceSerializer(serializers_).serialize(presence, ns))));
+            }
+        }
+
     }
 
     if (payload->getStanza()) { /* find out what type of stanza we are dealing with and branch into the correct serializer*/
