@@ -24,13 +24,66 @@ void MamManager::setupWithClient(Swift::Client* client)
 {
     client_ = client;
 
-    client->addPayloadParserFactory(&mamStanzaPayloadParserFactory_);
-    client->addPayloadSerializer(&mamStanzaPayloadSerializer_);
+    //client->addPayloadParserFactory(&mamStanzaPayloadParserFactory_);
+    //client->addPayloadSerializer(&mamStanzaPayloadSerializer_);
 
     client_->onConnected.connect(boost::bind(&MamManager::handleConnected, this));
 
     // watch the received messages and handle the Mam one's
     //client_->onDataRead.connect(boost::bind(&MamManager::handleDataReceived, this, _1));
+
+    //client_->onMessageReceived.connect(boost::bind(&MamManager::handleMessageReceived, this, _1));
+}
+
+void MamManager::handleMessageReceived(Swift::Message::ref message)
+{
+    std::cout << "handleMessageReceived: jid: " << message->getFrom() << ", bare: " << message->getFrom().toBare().toString() << ", resource: " << message->getFrom().getResource() << std::endl;
+
+#if 0
+    <message xmlns="jabber:client" to="sos@jabber.ccc.de/shmooseDesktop" from="99@conference.jabber.ccc.de">
+     <result xmlns="urn:xmpp:mam:2" id="1634851041439141">
+      <forwarded xmlns="urn:xmpp:forward:0">
+       <message xmlns="jabber:client" from="99@conference.jabber.ccc.de/ms<at>jabber.de" type="groupchat" id="1fad5d6a-e84e-4943-956d-e5dad342e48a">
+        <x xmlns="http://jabber.org/protocol/muc#user">
+         <item jid="ms@jabber.de/shmoose"></item>
+        </x>
+        <archived xmlns="urn:xmpp:mam:tmp" by="99@conference.jabber.ccc.de" id="1634851041439141"></archived>
+        <stanza-id xmlns="urn:xmpp:sid:0" by="99@conference.jabber.ccc.de" id="1634851041439141"></stanza-id>
+        <request xmlns="urn:xmpp:receipts"></request>
+        <markable xmlns="urn:xmpp:chat-markers:0"></markable>
+        <body>bla.</body>
+       </message>
+       <delay xmlns="urn:xmpp:delay" from="conference.jabber.ccc.de" stamp="2021-10-21T21:17:21.439141Z"></delay>
+      </forwarded>
+     </result>
+    </message>
+#endif
+
+    QString sMessage = getSerializedStringFromMessage(message);
+
+    QString mam2urn = XmlProcessor::getContentInTag("result", "xmlns", sMessage);
+
+    if (mam2urn.compare("urn:xmpp:mam:2", Qt::CaseInsensitive) == 0)
+    {
+        qDebug() << "mam:" << sMessage;
+
+        // cut out the original message
+        QString orgMsg = XmlProcessor::getChildFromNode("message", sMessage);
+        qDebug() << "mam2:" << orgMsg;
+
+        // FIXME make a Swift::Message out of this string and pass it to the MessageHandler
+    }
+}
+
+QString MamManager::getSerializedStringFromMessage(Swift::Message::ref msg)
+{
+    Swift::FullPayloadSerializerCollection serializers_;
+    MamStanzaPayloadSerializer mamSer;
+    serializers_.addSerializer(&mamSer);
+    Swift::XMPPSerializer xmppSerializer(&serializers_, Swift::ClientStreamType, true);
+    Swift::SafeByteArray sba = xmppSerializer.serializeElement(msg);
+
+    return QString::fromStdString(Swift::safeByteArrayToString(sba));
 }
 
 void MamManager::handleConnected()

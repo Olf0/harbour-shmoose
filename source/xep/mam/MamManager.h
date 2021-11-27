@@ -22,6 +22,9 @@ public:
     explicit MamManager(Persistence* persistence, QObject *parent = nullptr);
     void setupWithClient(Swift::Client* client);
 
+    static QString getSerializedStringFromMessage(Swift::Message::ref msg);
+
+
     static const QString mamNs;
 
 #ifndef UNIT_TEST
@@ -29,10 +32,10 @@ private:
 #endif
     void requestArchiveForJid(const QString& jid, const QString& last = "");
     void handleDataReceived(Swift::SafeByteArray data);
+    void handleMessageReceived(Swift::Message::ref message);
 
     void processMamMessage(const QString& qData);
     void processFinIq(const QString& iq);
-
 
     bool serverHasFeature_;
     QStringList queridJids_;

@@ -8,6 +8,7 @@
 #include "RosterController.h"
 #include "LurchAdapter.h"
 #include "XmppMessageParserClient.h"
+#include "MamManager.h"
 
 #include <Swiften/Elements/CarbonsReceived.h>
 #include <Swiften/Elements/CarbonsSent.h>
@@ -37,6 +38,9 @@ void MessageHandler::setupWithClient(Swift::Client* client)
 
         // xep 198 stream management and roster operations
         client_->onStanzaAcked.connect(boost::bind(&MessageHandler::handleStanzaAcked, this, _1));
+
+        client->addPayloadParserFactory(&mamStanzaPayloadParserFactory_);
+        client->addPayloadSerializer(&mamStanzaPayloadSerializer_);
 
         chatMarkers_->setupWithClient(client_);
     }
@@ -75,6 +79,27 @@ void MessageHandler::handleMessageReceived(Swift::Message::ref message)
     }
 
     std::string fromJid = message->getFrom().toBare().toString();
+
+    // mam
+    auto msp = message->getPayload<MamStanzaPayload>();
+    if (msp)
+    {
+        std::cout << "mam id; " << msp->getId() << std::endl;
+        QString pl = MamManager::getSerializedStringFromMessage(message);
+
+        //FIXME maybe just use rawxmlpayloardparser?
+        //Swift::RawXMLPayload* payload = dynamic_cast<Swift::RawXMLPayload*>(message->getPayload());
+
+        qDebug() << pl;
+
+        //auto fwd = std::dynamic_pointer_cast<Swift::Message>(msp->getStanza());
+        //auto mamMessage = std::dynamic_pointer_cast<Swift::Forwarded>(msp->getStanza());
+        //auto pl = msp->getPayload();
+        //if (mamMessage)
+            //std::cout << "id: " << mamMessage->getID() << ", from: " << mamMessage->getFrom() << std::endl;
+            //auto delay = mamMessage->getDelay();
+    }
+
 
     // XEP 280
     Swift::JID toJID;

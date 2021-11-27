@@ -1,10 +1,88 @@
 #include "MamStanzaPayloadParser.h"
+#include "MamStanzaPayloadParserFactory.h"
 
 #include <iostream>
 #include <QString>
 
-MamStanzaPayloadParser::MamStanzaPayloadParser()
+MamStanzaPayloadParser::MamStanzaPayloadParser() : level_(TopLevel)
 {
+    factories_ = new Swift::PayloadParserFactoryCollection(); // FIXME delete!
+    //factories_->addFactory(new MamStanzaPayloadParserFactory());
+}
+
+void MamStanzaPayloadParser::handleStartElement(const std::string& element, const std::string& ns, const Swift::AttributeMap& attributes) {
+    if (level_ == TopLevel && element == "result" && ns == "urn:xmpp:mam:2")
+    {
+        getPayloadInternal()->setId(attributes.getAttribute("id"));
+    }
+    if (level_ == PayloadLevel) {
+        if (element == "iq" && ns == "jabber:client") { /* begin parsing a nested stanza? */
+            childParser_ = std::dynamic_pointer_cast<Swift::StanzaParser>(std::make_shared<Swift::IQParser>(factories_));
+        } else if (element == "forwarded" && ns == "urn:xmpp:forward:0") {
+            fwdParser_ = std::make_shared<Swift::ForwardedParser>(factories_);
+        } else if (element == "message" && ns == "jabber:client") {
+            childParser_ = std::dynamic_pointer_cast<Swift::StanzaParser>(std::make_shared<Swift::MessageParser>(factories_));
+        } else if (element == "presence" && ns == "jabber:client") {
+            childParser_ = std::dynamic_pointer_cast<Swift::StanzaParser>(std::make_shared<Swift::PresenceParser>(factories_));
+        } else if (element == "delay" && ns == "urn:xmpp:delay") { /* nested delay payload */
+            delayParser_ = std::make_shared<Swift::DelayParser>();
+        }
+    }
+    if (childParser_) { /* parsing a nested stanza? */
+        childParser_->handleStartElement(element, ns, attributes);
+    }
+    if (delayParser_) { /* parsing a nested delay payload? */
+        delayParser_->handleStartElement(element, ns, attributes);
+    }
+    if (fwdParser_) {
+        fwdParser_->handleStartElement(element, ns, attributes);
+    }
+    ++level_;
+}
+
+void MamStanzaPayloadParser::handleEndElement(const std::string& element, const std::string& ns) {
+    --level_;
+    if (childParser_ && level_ >= PayloadLevel) {
+        childParser_->handleEndElement(element, ns);
+    }
+    if (childParser_ && level_ == PayloadLevel) {
+        /* done parsing nested stanza */
+        getPayloadInternal()->setStanza(childParser_->getStanza());
+        childParser_.reset();
+    }
+
+    if (delayParser_ && level_ >= PayloadLevel) {
+        delayParser_->handleEndElement(element, ns);
+    }
+    if (delayParser_ && level_ == PayloadLevel) {
+        /* done parsing nested delay payload */
+        // FIXME!
+        //getPayloadInternal()->setDelay(std::dynamic_pointer_cast<Swift::Delay>(delayParser_->getPayload()));
+        delayParser_.reset();
+    }
+
+    if (fwdParser_ && level_ >= PayloadLevel) {
+        fwdParser_->handleEndElement(element, ns);
+    }
+    if (fwdParser_ && level_ == PayloadLevel) {
+        /* done parsing nested stanza */
+        // FIXME
+        //getPayloadInternal()->setStanza(fwdParser_->getStanza());
+        getPayloadInternal()->setFwdPayload(fwdParser_->getPayload());
+        fwdParser_.reset();
+    }
+}
+
+void MamStanzaPayloadParser::handleCharacterData(const std::string& data) {
+    if (childParser_) {
+        childParser_->handleCharacterData(data);
+    }
+    if (delayParser_) {
+        delayParser_->handleCharacterData(data);
+    }
+    if (fwdParser_) {
+        fwdParser_->handleCharacterData(data);
+    }
 }
 
 
@@ -56,53 +134,3 @@ MamStanzaPayloadParser::MamStanzaPayloadParser()
          </result>
         </message>
 #endif
-
-void MamStanzaPayloadParser::handleStartElement(const std::string& element, const std::string& ns, const Swift::AttributeMap& attributes)
-{
-    std::cout << "################# MamStanzaPayloadParser::handleStartElement ###############" << std::endl;
-
-    if (level_ == 2) // message metadata
-    {
-        //getPayloadInternal()->setBy(attributes.getAttribute("by"));
-        //getPayloadInternal()->setId(attributes.getAttribute("id"));
-        auto id = attributes.getAttribute("id");
-        std::cout << "id: " << id  << std::endl;
-        getPayloadInternal()->setId(attributes.getAttribute("id"));
-
-        auto from = attributes.getAttribute("from");
-        std::cout << "from: " << from  << std::endl;
-
-        auto senderBareJid = Swift::JID(from).toBare().toString();
-        auto resource = Swift::JID(from).getResource();
-        getPayloadInternal()->setSenderBareJid(attributes.getAttribute(senderBareJid));
-        getPayloadInternal()->setResource(attributes.getAttribute(resource));
-
-        std::cout << "from bare: " << senderBareJid.toStdString()  << std::endl;
-        std::cout << "from res: " << resource.toStdString()  << std::endl;
-
-        std::cout << "type: " << attributes.getAttribute("type") << std::endl;
-    }
-
-    if (level_ == 2) // body | encrypted
-    {
-        if (element.compare("encrypted") == 0)
-        {
-
-        }
-        else if (element.compare("body") == 0)
-        {
-
-        }
-    }
-
-    level_++;
-}
-
-void MamStanzaPayloadParser::handleEndElement(const std::string& /* element */, const std::string& /* ns */)
-{
-    level_--;
-}
-
-void MamStanzaPayloadParser::handleCharacterData(const std::string& /* data */)
-{
-}

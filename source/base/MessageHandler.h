@@ -5,6 +5,9 @@
 #include <Swiften/Swiften.h>
 #include "Settings.h"
 
+#include "MamStanzaPayloadParserFactory.h"
+#include "MamStanzaPayloadSerializer.h"
+
 class DownloadManager;
 class Persistence;
 class ChatMarkers;
@@ -43,6 +46,9 @@ public:
     ChatMarkers* chatMarkers_;
 
     XMPPMessageParserClient* xmppMessageParserClient_;
+
+    MamStanzaPayloadParserFactory mamStanzaPayloadParserFactory_;
+    MamStanzaPayloadSerializer mamStanzaPayloadSerializer_;
 
     bool appIsActive_;
     QStringList unAckedMessageIds_;
