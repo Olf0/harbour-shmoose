@@ -90,6 +90,21 @@ void MessageHandler::handleMessageReceived(Swift::Message::ref message)
         //FIXME maybe just use rawxmlpayloardparser?
         //Swift::RawXMLPayload* payload = dynamic_cast<Swift::RawXMLPayload*>(message->getPayload());
 
+#if 0
+        auto mmsg = std::dynamic_pointer_cast<Swift::Message>(msp->getStanza());
+        std::vector< std::shared_ptr<Swift::RawXMLPayload> > xmlPayloads = mmsg->getPayloads<Swift::RawXMLPayload>();
+         std::cout << "raw size: " << xmlPayloads.size() << std::endl;
+        for (std::vector<std::shared_ptr<Swift::RawXMLPayload>>::iterator it = xmlPayloads.begin() ; it != xmlPayloads.end(); ++it)
+        {
+            std::cout << "raw: " << ((*it)->getRawXML()) << std::endl;
+        }
+#endif
+        auto vec = message->getPayloads();
+
+        //auto mmsg = std::dynamic_pointer_cast<Swift::Message>(msp->getStanza());
+        //std::cout << "mmsg: jid: " << mmsg->getFrom() << ", bare: " << mmsg->getFrom().toBare().toString() << ", resource: " << mmsg->getFrom().getResource() << "body: " << mmsg->getBody() << std::endl;
+
+
         qDebug() << pl;
 
         //auto fwd = std::dynamic_pointer_cast<Swift::Message>(msp->getStanza());

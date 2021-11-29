@@ -24,6 +24,7 @@ std::string MamStanzaPayloadSerializer::serializePayload(std::shared_ptr<MamStan
             std::shared_ptr<Swift::Message> message;
             std::shared_ptr<Swift::Presence> presence;
             const std::string ns = "jabber:client";
+            // FIXME add Forward !
             if ((iq = std::dynamic_pointer_cast<Swift::IQ>(pl->getStanza()))) {
                 element.addNode(std::make_shared<Swift::XMLRawTextNode>(safeByteArrayToString(Swift::IQSerializer(serializers_).serialize(iq, ns))));
             } else if ((message = std::dynamic_pointer_cast<Swift::Message>(pl->getStanza()))) {
